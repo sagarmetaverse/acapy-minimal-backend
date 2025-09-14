@@ -123,5 +123,31 @@ router.post('/credential-definitions', async (req, res) => {
     }
 });
 
+// get all created credential definitions
+router.get('/credential-definitions', async (req, res) => {
+    try {
+        const response = await axiosInstance.get('/credential-definitions/created');
+        res.json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch credential definitions from ACA-Py' });
+    }
+});
+
+// get credential definition by cred_def_id
+router.get('/credential-definitions/:cred_def_id', async (req, res) => {
+    try {
+        const { cred_def_id } = req.params;
+        const response = await axiosInstance.get(`/credential-definitions/${cred_def_id}`);
+        res.json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch credential definition from ACA-Py' });
+    }
+});
+
+
+
+
 
 export default router;
