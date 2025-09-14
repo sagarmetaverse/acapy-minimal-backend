@@ -172,14 +172,14 @@ router.post('/issue-credential', async (req, res) => {
     }
 
     const issueCredentialDataPayload = {
-        "connection_id": connection_id,
-        "credential_preview": {
+        connection_id: connection_id,
+        credential_preview: {
             "@type": "issue-credential/2.0/credential-preview",
-            "attributes": attributes
+            attributes: attributes
         },
-        "filter": {
-            "indy": {
-                "cred_def_id": cred_def_id
+        filter: {
+            indy: {
+                cred_def_id: cred_def_id
             }
         }
     };
