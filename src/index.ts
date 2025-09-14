@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
   res.send('Acao-Py Minimal Backend');
 });
 
-app.use('/api/acapy', acapyRouter);
+app.use('/api/v1/', acapyRouter);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
