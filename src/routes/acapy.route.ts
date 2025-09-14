@@ -196,6 +196,7 @@ router.post('/issue-credential', async (req, res) => {
 
 // connection endpoints
 router.post('/connections/create-invitation', async (req, res) => {
+    // label: issuer or verifier name
     const { label } = req.body;
 
     if (!label) {
@@ -211,6 +212,7 @@ router.post('/connections/create-invitation', async (req, res) => {
             "https://didcomm.org/didexchange/1.0"
         ],
         label,
+        my_label: label,
         protocol_version: '1.1',
         goal: 'Connect to Acao-Py Minimal Backend',
     }
@@ -223,5 +225,19 @@ router.post('/connections/create-invitation', async (req, res) => {
         res.status(500).json({ error: 'Failed to create connection invitation in ACA-Py' });
     }
 });
+
+//get connection by id
+router.get('/connections/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const response = await axiosInstance.get(`/connections/${id}`);
+        res.json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch connection from ACA-Py' });
+    }
+});
+
+
 
 export default router;
