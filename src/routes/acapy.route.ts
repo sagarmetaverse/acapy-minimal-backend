@@ -54,7 +54,7 @@ router.post('/schemas', async (req, res) => {
         const schemaData = { schema_name, schema_version, attributes };
         const response = await axiosInstance.post('/schemas', schemaData);
         res.json(response.data);
-    } catch (error : AxiosError | any) {
+    } catch (error: AxiosError | any) {
         if (error.response?.status === 400) {
             // ACA-Py returns 400 Bad Request if schema already exists
             res.status(400).json({ error: 'Schema already exists in ACA-Py' });
@@ -146,8 +146,82 @@ router.get('/credential-definitions/:cred_def_id', async (req, res) => {
     }
 });
 
+// credential issuance endpoint (Using Issue Credential v2.0)
+/**
+ {
+  "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "cred_def_id": "HrtRSHvELgrURjujcYXWVr:3:CL:2911236:default",
+  "attributes": {
+    "fullname": "Alice Doe",
+    "uniID": "U12345678"
+  }
+}
+ */
+// TODO: check after connection is ready
+router.post('/issue-credential', async (req, res) => {
+    // automate credential with sending offer to a specific connection_id
+    const { connection_id, cred_def_id, attributes } = req.body;
+
+    console.log('connection_id:', typeof connection_id);
+    console.log('cred_def_id:', typeof cred_def_id);
+    console.log('attributes:', typeof attributes, Array.isArray(attributes));
 
 
+    if (!connection_id || !cred_def_id || typeof attributes !== 'object') {
+        return res.status(400).json({ error: 'Missing required fields: connection_id, cred_def_id, attributes' });
+    }
 
+    const issueCredentialDataPayload = {
+        "connection_id": connection_id,
+        "credential_preview": {
+            "@type": "issue-credential/2.0/credential-preview",
+            "attributes": attributes
+        },
+        "filter": {
+            "indy": {
+                "cred_def_id": cred_def_id
+            }
+        }
+    };
+
+    try {
+        const response = await axiosInstance.post('/issue-credential-2.0/send', issueCredentialDataPayload);
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to issue credential in ACA-Py' });
+    }
+})
+
+
+// connection endpoints
+router.post('/connections/create-invitation', async (req, res) => {
+    const { label } = req.body;
+
+    if (!label) {
+        return res.status(400).json({ error: 'Missing required field: label' });
+    }
+
+    const connectionPayload = {
+        accept: [
+            "didcomm/aip1",
+            "didcomm/aip2;env=rfc19"
+        ],
+        handshake_protocols: [
+            "https://didcomm.org/didexchange/1.0"
+        ],
+        label,
+        protocol_version: '1.1',
+        goal: 'Connect to Acao-Py Minimal Backend',
+    }
+
+    try {
+        const response = await axiosInstance.post('/out-of-band/create-invitation', connectionPayload);
+        res.json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create connection invitation in ACA-Py' });
+    }
+});
 
 export default router;
