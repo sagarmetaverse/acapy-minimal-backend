@@ -231,8 +231,36 @@ router.get('/connections/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const response = await axiosInstance.get(`/connections/${id}`);
-        res.json(response.data);
+        res.status(200).json(response.data);
     } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch connection from ACA-Py' });
+    }
+});
+
+// get all connections
+router.get('/connections', async (req, res) => {
+    try {
+        const response = await axiosInstance.get('/connections');
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch connections from ACA-Py' });
+    }
+});
+
+// get connection by out-of-band id
+router.get('/connections/oob/:oob_id', async (req, res) => {
+    const { oob_id } = req.params;
+
+    try {
+        const connections = await axiosInstance.get('/connections');
+        const existingConnection = connections.data.results || connections.data || [];
+
+        const connection = existingConnection.filter((conn: any) => conn.out_of_band_id === oob_id || conn.invitation_msg_id === oob_id || conn.request_id === oob_id);
+        return res.status(200).json(connection);
+    }
+    catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to fetch connection from ACA-Py' });
     }
