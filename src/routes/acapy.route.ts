@@ -193,6 +193,93 @@ router.post('/issue-credential', async (req, res) => {
     }
 })
 
+// get issued credential by id
+router.get('/issue-credential/records/:id', async (req, res) => {
+    const { id } = req.params;
+
+    if (typeof id !== 'string' || id.trim() === '') {
+        return res.status(400).json({ error: 'Invalid id parameter' });
+    }
+
+    try {
+        const response = await axiosInstance.get(`/issue-credential-2.0/records/${id}`);
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch issue credential record from ACA-Py' });
+    }
+});
+
+// get all issued credentials
+router.get('/issue-credential/records', async (req, res) => {
+    try {
+        const response = await axiosInstance.get('/issue-credential-2.0/records');
+        res.status(200).json(response.data);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch issue credential records from ACA-Py' });
+    }
+});
+
+// send proof requestion
+router.post("/proof-request", async (req, res) => {
+    const { connectionId, proofRequestLabel, attributes, predicates, version } = req.body;
+
+    const proofPayload = {
+        connection_id: connectionId,
+        comment: proofRequestLabel,
+        trace: true,
+        will_confirm: true,
+        auto_present: false,
+        auto_remove: false,
+        presentation_request: {
+            indy: {
+                name: proofRequestLabel,
+                requested_attributes: attributes,
+                requested_predicates: predicates,
+                version,
+            },
+        },
+    }
+
+    try {
+        const response = await axiosInstance.post('/present-proof-2.0/send-request', proofPayload);
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to send proof request to ACA-Py' });
+    }
+
+})
+
+// get proof by id
+router.get('/proof/records/:id', async (req, res) => {
+    const { id } = req.params;
+
+    if (typeof id !== 'string' || id.trim() === '') {
+        return res.status(400).json({ error: 'Invalid id parameter' });
+    }
+
+    try {
+        const response = await axiosInstance.get(`/present-proof-2.0/records/${id}`);
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch proof record from ACA-Py' });
+    }
+});
+
+// get all proof records
+router.get('/proof/records', async (req, res) => {
+    try {
+        const response = await axiosInstance.get('/present-proof-2.0/records');
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch proof records from ACA-Py' });
+    }
+})
 
 // connection endpoints
 router.post('/connections/create-invitation', async (req, res) => {
@@ -266,6 +353,6 @@ router.get('/connections/oob/:oob_id', async (req, res) => {
     }
 });
 
-
+// proof endpoints
 
 export default router;
